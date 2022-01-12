@@ -37,4 +37,9 @@ const Employee = db.define('employee', {
     timestamps: false,
 })
 
+const init = async () => {
+    await Employee.sync();
+};
+init();
+
 module.exports = Employee;
