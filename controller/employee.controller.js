@@ -15,9 +15,7 @@ const createEmployee = async (req,res) => {
 const getEmployees = async (req, res) => {
     try{
         const employees = await models.findAll();
-        return res.status(201).json({
-            employees
-        });
+        return res.status(201).json(employees);
     } catch (error){
         return res.status(500).json({error: error.message})
     }
