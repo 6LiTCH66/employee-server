@@ -21,6 +21,13 @@ const Employee = db.define('employee', {
     birthday:{
         type: Sequelize.DATE,
         allowNull: false
+    },
+    telephone:{
+        type: Sequelize.STRING,
+        allowNull: false
+    },
+    email: {
+        type: Sequelize.STRING
     }
 
 }, {
