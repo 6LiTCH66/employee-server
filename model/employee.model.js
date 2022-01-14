@@ -21,20 +21,14 @@ const Employee = db.define('employee', {
     birthday:{
         type: Sequelize.DATE,
         allowNull: false
-    },
-    created_at:{
-        type: Sequelize.DATE,
-        allowNull: false
-    },
-    updated_at:{
-        type: Sequelize.DATE,
-        allowNull: false
-    },
+    }
 
 }, {
     tableName: "employee",
     underscored: true,
-    timestamps: false,
+    timestamps: true,
+    createdAt: "created_at",
+    updatedAt: "updated_at"
 })
 
 const init = async () => {
