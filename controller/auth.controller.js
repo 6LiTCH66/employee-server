@@ -43,16 +43,26 @@ const signin = async (req, res) =>{
         const user = await models.findOne({where: {email: email}});
 
         if(user && (await bcrypt.compare(password, user.password))){
-            const token = jwt.sign(
+            const accessToken = jwt.sign(
                 {id: user.id, email},
                 "ilja-secret-key",
                 {
                     expiresIn: "15m"
                 }
             );
-            res.cookie("access_token", token, {httpOnly: true, maxAge:900000})
+            const refreshToken = jwt.sign(
+                {id: user.id, email},
+                "ilja-secret-key",
+                {
+                    expiresIn: "15m"
+                }
+            );
 
-            await updateUserAuth(user.id, Date.now(), req.socket.remoteAddress, req.get('User-Agent'), token)
+            res.cookie("access_token", accessToken, {httpOnly: true, maxAge:15 * 60 * 1000})
+
+            res.cookie("refresh_token", refreshToken, {httpOnly: true, maxAge:14 * 60 * 1000})
+
+            await updateUserAuth(user.id, Date.now(), req.socket.remoteAddress, req.get('User-Agent'), accessToken)
 
             res.status(200).json(user);
         }
@@ -68,6 +78,7 @@ const logout = async (req, res) =>{
     try{
         await createLogoutAt(req.user.id, Date.now(), req.cookies.access_token)
         res.clearCookie("access_token")
+        res.clearCookie("refresh_token")
         await req.user.save();
 
     }catch (error){
