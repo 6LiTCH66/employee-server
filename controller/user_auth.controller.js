@@ -1,26 +1,34 @@
 const models = require("../model/user_auth.model")
 
 
-const createUserAuth = (login_at, ip, agent, token) =>{
-    models.create({
-        login_at,
-        ip,
-        agent,
-        token
-    })
+const createUserAuth = async (login_at, ip, agent, token) =>{
+    await models.create(
+        {
+            login_at,
+            ip,
+            agent,
+            token
+        }
+    )
 }
-const updateUserAuth = (user_id, login_at, ip, agent, token) => {
-    models.update({login_at,
-        ip,
-        agent,
-        token},
+const updateUserAuth = async(user_id, login_at, ip, agent, token) => {
+    await models.update(
+        {
+            login_at,
+            ip,
+            agent,
+            token
+        },
         {where: {user_id: user_id},}
     )
 
 }
-const updateLogoutAt = (user_id, logout_at) => {
-    models.update(
-        {logout_at},
+const createLogoutAt = async (user_id, logout_at, token) => {
+    await models.update(
+        {
+            logout_at,
+            token
+        },
         {where: {user_id: user_id},}
     )
 }
@@ -28,5 +36,5 @@ const updateLogoutAt = (user_id, logout_at) => {
 module.exports = {
     createUserAuth,
     updateUserAuth,
-    updateLogoutAt
+    createLogoutAt
 }

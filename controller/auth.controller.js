@@ -1,56 +1,44 @@
 const jwt = require('jsonwebtoken')
 const bcrypt = require('bcryptjs')
 const models = require('../model/user.model')
-const {createUserAuth, updateUserAuth, updateLogoutAt} = require("./user_auth.controller");
-const requestIp = require('request-ip');
+const {createUserAuth, createLogoutAt, updateUserAuth} = require("./user_auth.controller");
+const {validationResult} = require('express-validator')
 
 const signup = async (req, res) =>{
     try{
-        const {email, password} = req.body;
+        const errors = validationResult(req)
 
-        if(!(email && password)){
-            res.status(400).send("All inputs is required");
+        if(!errors.isEmpty()){
+            return res.status(400).json({message: "Error while signup", errors})
         }
 
-        const oldUser = await models.findOne({where: {email: email}})
+        const {email, password} = req.body;
 
-        if(oldUser){
-            return res.status(409).send("User already exist. Please Login")
+        const candidate = await models.findOne({where: {email: email}})
+
+        if(candidate){
+            return res.status(400).send("User already exist. Please Login")
         }
 
         encryptedPassword = await bcrypt.hash(password, 10);
 
         const user = await models.create({
-            email: email.toLowerCase(),
+            email,
             password: encryptedPassword,
         });
 
-        const token = jwt.sign(
-            {id: user.id, email},
-            "ilja-secret-key",
-            {
-                expiresIn: "15m",
-            }
-        );
-
-        createUserAuth(Date.now(), requestIp.getClientIp(req), req.get('User-Agent'), token)
-
-        user.token = token;
+        await createUserAuth(null, null, null, null)
 
         res.status(201).json(user)
 
     } catch (error){
-        return res.status(500).send(error.message)
+        return res.status(400).send(error.message)
     }
 }
 
 const signin = async (req, res) =>{
     try{
         const {email, password} = req.body;
-
-        if(!(email && password)){
-            res.status(400).send("All inputs is required");
-        }
 
         const user = await models.findOne({where: {email: email}});
 
@@ -64,9 +52,7 @@ const signin = async (req, res) =>{
             );
             res.cookie("access_token", token, {httpOnly: true, maxAge:900000})
 
-            updateUserAuth(user.id, Date.now(), requestIp.getClientIp(req), req.get('User-Agent'), token)
-
-            user.token = token;
+            await updateUserAuth(user.id, Date.now(), req.socket.remoteAddress, req.get('User-Agent'), token)
 
             res.status(200).json(user);
         }
@@ -75,12 +61,12 @@ const signin = async (req, res) =>{
         }
 
     }catch (error){
-        return res.status(500).send(error.message)
+        return res.status(400).send(error.message)
     }
 }
 const logout = async (req, res) =>{
     try{
-        updateLogoutAt(req.user.id, Date.now())
+        await createLogoutAt(req.user.id, Date.now(), req.cookies.access_token)
         res.clearCookie("access_token")
         await req.user.save();
 

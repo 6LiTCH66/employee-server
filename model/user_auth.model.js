@@ -9,7 +9,7 @@ const UserAuth = db.define('user_auth',{
     },
     login_at:{
         type: Sequelize.DATE,
-        allowNull: false
+        allowNull: true
     },
     logout_at:{
         type: Sequelize.DATE,
@@ -17,15 +17,15 @@ const UserAuth = db.define('user_auth',{
     },
     ip:{
         type: Sequelize.STRING,
-        allowNull: false
+        allowNull: true
     },
     agent:{
         type: Sequelize.STRING,
-        allowNull: false
+        allowNull: true
     },
     token:{
         type: Sequelize.STRING,
-        allowNull:false
+        allowNull:true
     }
 }, {
     tableName: "user_auth",
