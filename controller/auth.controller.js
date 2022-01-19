@@ -52,15 +52,15 @@ const signin = async (req, res) =>{
             );
             const refreshToken = jwt.sign(
                 {id: user.id, email},
-                "ilja-secret-key",
+                "ilja-secret-key-refresh-token",
                 {
-                    expiresIn: "15m"
+                    expiresIn: "30d"
                 }
             );
 
-            res.cookie("access_token", accessToken, {httpOnly: true, maxAge:15 * 60 * 1000})
+            res.cookie("access_token", accessToken, {httpOnly: true, maxAge: 15 * 60 * 1000})
 
-            res.cookie("refresh_token", refreshToken, {httpOnly: true, maxAge:14 * 60 * 1000})
+            res.cookie("refresh_token", refreshToken, {httpOnly: true, maxAge: 30000 * 60 * 60 * 24})
 
             await updateUserAuth(user.id, Date.now(), req.socket.remoteAddress, req.get('User-Agent'), accessToken)
 
