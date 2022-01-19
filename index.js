@@ -6,6 +6,7 @@ const authRouters = require("./routes/auth.routes")
 const auth = require("./middlewares/auth")
 const PORT = process.env.PORT || 8080
 const app = express()
+app.enable('trust proxy');
 app.use(cookieParser());
 
 app.use(cors({credentials: true, origin: true}));
