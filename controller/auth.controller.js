@@ -1,4 +1,5 @@
 const jwt = require('jsonwebtoken')
+require("dotenv").config();
 const bcrypt = require('bcryptjs')
 const models = require('../model/user.model')
 const {createUserAuth, createLogoutAt, updateUserAuth} = require("./user_auth.controller");
