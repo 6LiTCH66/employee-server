@@ -9,7 +9,8 @@ router.post("/signup",[
     check('password', "Password should be at least 10 digit").isLength({min:4, max:10})
 ], controller.signup)
 router.post("/signin", controller.signin)
-router.get('/logout',auth, controller.logout)
+router.post('/logout', auth, controller.logout)
+router.post('/token', auth, controller.token)
 
 
 

@@ -29,7 +29,10 @@ const signup = async (req, res) =>{
 
         await createUserAuth(null, null, null, null)
 
-        res.status(201).json(user)
+        res.status(200).send({
+            message: "success"
+        })
+
 
     } catch (error){
         return res.status(400).send(error.message)
@@ -37,6 +40,7 @@ const signup = async (req, res) =>{
 }
 
 const signin = async (req, res) =>{
+
     try{
         const {email, password} = req.body;
 
@@ -45,40 +49,54 @@ const signin = async (req, res) =>{
         if(user && (await bcrypt.compare(password, user.password))){
             const accessToken = jwt.sign(
                 {id: user.id, email},
-                "ilja-secret-key",
+                process.env.ACCESS_TOKEN,
                 {
                     expiresIn: "15m"
                 }
             );
-            const refreshToken = jwt.sign(
-                {id: user.id, email},
-                "ilja-secret-key-refresh-token",
-                {
-                    expiresIn: "30d"
-                }
-            );
-
-            res.cookie("access_token", accessToken, {httpOnly: true, maxAge: 15 * 60 * 1000})
-
-            res.cookie("refresh_token", refreshToken, {httpOnly: true, maxAge: 30000 * 60 * 60 * 24})
-
+            res.cookie("access_token", accessToken, {httpOnly: true, maxAge: 15 * 60 * 1000, overwrite: true})
             await updateUserAuth(user.id, Date.now(), req.socket.remoteAddress, req.get('User-Agent'), accessToken)
 
-            res.status(200).json(user);
+            const {password, ...data} = await user.toJSON()
+
+            res.status(200).json(data);
         }
         else{
             res.status(400).send("Invalid Credentials")
         }
 
+
     }catch (error){
         return res.status(400).send(error.message)
     }
 }
+
+const token = async (req, res) =>{
+    const accessToken = req.cookies.access_token;
+    try{
+        const user = await jwt.verify(accessToken, process.env.ACCESS_TOKEN)
+
+        const newAccessToken = await jwt.sign(
+            {id: user.id, email: user.email},
+            process.env.ACCESS_TOKEN,
+            {
+                expiresIn: "15m"
+            }
+        );
+
+        res.cookie("access_token", newAccessToken, {httpOnly: true, maxAge: 15 * 60 * 1000, overwrite: true})
+        res.status(200).json(user);
+
+    }catch (error){
+        return res.status(400).send(error.message)
+    }
+
+}
+
 const logout = async (req, res) =>{
     try{
         await createLogoutAt(req.user.id, Date.now(), req.cookies.access_token)
         res.clearCookie("access_token")
-        res.clearCookie("refresh_token")
         await req.user.save();
 
     }catch (error){
@@ -89,5 +107,6 @@ const logout = async (req, res) =>{
 module.exports = {
     signup,
     signin,
-    logout
+    logout,
+    token
 }

@@ -1,6 +1,5 @@
 const db = require("../database")
 const models = require("../model/employee.model")
-
 const createEmployee = async (req,res) => {
     try{
         const employee = await models.create(req.body)
