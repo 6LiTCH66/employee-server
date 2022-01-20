@@ -55,7 +55,7 @@ const signin = async (req, res) =>{
                     expiresIn: "15m"
                 }
             );
-            res.cookie("access_token", accessToken, {httpOnly: true, maxAge: 15 * 60 * 1000, overwrite: true})
+            res.cookie("access_token", accessToken, {httpOnly: true, maxAge: 15 * 60 * 1000, overwrite: true, sameSite: "none"})
             await updateUserAuth(user.id, Date.now(), req.socket.remoteAddress, req.get('User-Agent'), accessToken)
 
             const {password, ...data} = await user.toJSON()
@@ -85,7 +85,7 @@ const token = async (req, res) =>{
             }
         );
 
-        res.cookie("access_token", newAccessToken, {httpOnly: true, maxAge: 15 * 60 * 1000, overwrite: true})
+        res.cookie("access_token", accessToken, {httpOnly: true, maxAge: 15 * 60 * 1000, overwrite: true, sameSite: "none"})
         res.status(200).json(user);
 
     }catch (error){
