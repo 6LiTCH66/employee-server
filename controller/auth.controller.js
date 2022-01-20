@@ -97,8 +97,8 @@ const token = async (req, res) =>{
 const logout = async (req, res) =>{
     try{
         await createLogoutAt(req.user.id, Date.now(), req.cookies.access_token)
-        res.clearCookie("access_token", {sameSite: "none", secure: true})
-        await req.user.save();
+        res.cookie("access_token", '', {maxAge: 0})
+        //await req.user.save();
 
     }catch (error){
         res.status(500).send(error)
