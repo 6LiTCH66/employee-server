@@ -98,6 +98,7 @@ const logout = async (req, res) =>{
     try{
         await createLogoutAt(req.user.id, Date.now(), req.cookies.access_token)
         res.clearCookie("access_token", {sameSite: "none", secure: true})
+        res.status(200).json('User Logged out')
         //await req.user.save();
 
     }catch (error){
