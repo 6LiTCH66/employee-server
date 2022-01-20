@@ -85,7 +85,7 @@ const token = async (req, res) =>{
             }
         );
 
-        res.cookie("access_token", accessToken, {httpOnly: true, maxAge: 15 * 60 * 1000, overwrite: true, sameSite: "none", secure: true})
+        res.cookie("access_token", newAccessToken, {httpOnly: true, maxAge: 15 * 60 * 1000, overwrite: true, sameSite: "none", secure: true})
         res.status(200).json(user);
 
     }catch (error){
