@@ -2,7 +2,7 @@ const jwt = require('jsonwebtoken')
 require("dotenv").config();
 const bcrypt = require('bcryptjs')
 const models = require('../model/user.model')
-const {createUserAuth, createLogoutAt, updateUserAuth} = require("./user_auth.controller");
+const {createUserAuth, createLogoutAt, updateUserAuth, updateToken, updateIsOnline} = require("./user_auth.controller");
 const {validationResult} = require('express-validator')
 
 const signup = async (req, res) =>{
@@ -28,7 +28,7 @@ const signup = async (req, res) =>{
             password: encryptedPassword,
         });
 
-        await createUserAuth(null, null, null, null)
+        await createUserAuth(null, null, null, null, null)
 
         res.status(200).send({
             message: "success"
@@ -56,7 +56,7 @@ const signin = async (req, res) =>{
                 }
             );
             res.cookie("access_token", accessToken, {httpOnly: true, maxAge: 15 * 60 * 1000, overwrite: true, sameSite: "none", secure: true})
-            await updateUserAuth(user.id, Date.now(), req.socket.remoteAddress, req.get('User-Agent'), accessToken)
+            await updateUserAuth(user.id, Date.now(), req.socket.remoteAddress, req.get('User-Agent'), accessToken, true)
 
             const {password, ...data} = await user.toJSON()
 
@@ -65,7 +65,6 @@ const signin = async (req, res) =>{
         else{
             res.status(400).send("Invalid Credentials")
         }
-
 
     }catch (error){
         return res.status(400).send(error.message)
@@ -86,20 +85,22 @@ const token = async (req, res) =>{
         );
 
         res.cookie("access_token", newAccessToken, {httpOnly: true, maxAge: 15 * 60 * 1000, overwrite: true, sameSite: "none", secure: true})
+        await updateToken(user.id, newAccessToken, true);
         res.status(200).json(user);
 
     }catch (error){
+        const user = jwt.verify(accessToken, process.env.ACCESS_TOKEN, {ignoreExpiration: true} );
+        await updateIsOnline(user.id, false)
         return res.status(400).send(error.message)
     }
 
 }
 
-const logout = async (req, res) =>{
+const logout = async (req, res) => {
     try{
-        await createLogoutAt(req.user.id, Date.now(), req.cookies.access_token)
+        await createLogoutAt(req.user.id, Date.now(), req.cookies.access_token, false)
         res.clearCookie("access_token", {sameSite: "none", secure: true})
         res.status(200).json('User Logged out')
-        //await req.user.save();
 
     }catch (error){
         res.status(500).send(error)

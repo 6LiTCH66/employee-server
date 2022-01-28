@@ -26,6 +26,10 @@ const UserAuth = db.define('user_auth',{
     token:{
         type: Sequelize.STRING,
         allowNull:true
+    },
+    isOnline: {
+        type: Sequelize.BOOLEAN,
+        allowNull: true
     }
 }, {
     tableName: "user_auth",
