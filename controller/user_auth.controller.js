@@ -54,11 +54,21 @@ const updateIsOnline = async (user_id, isOnline) => {
         {where: {user_id: user_id},}
     )
 }
+const getAuthUsers = async (req, res) => {
+    try{
+        const authUsers = await models.findAll();
+        return res.status(201).json(authUsers);
+
+    }catch (error){
+        return res.status(500).json({error: error.message})
+    }
+}
 
 module.exports = {
     createUserAuth,
     updateUserAuth,
     createLogoutAt,
     updateToken,
-    updateIsOnline
+    updateIsOnline,
+    getAuthUsers
 }
