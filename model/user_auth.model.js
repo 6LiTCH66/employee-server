@@ -4,8 +4,7 @@ const db = require("../database");
 const UserAuth = db.define('user_auth',{
     user_id: {
         type: Sequelize.INTEGER,
-        autoIncrement: true,
-        primaryKey: true
+        primaryKey: true,
     },
     login_at:{
         type: Sequelize.DATE,
@@ -34,7 +33,6 @@ const UserAuth = db.define('user_auth',{
 }, {
     tableName: "user_auth",
     underscored: true,
-    timestamps: false,
 })
 const init = async () =>{
     await UserAuth.sync();

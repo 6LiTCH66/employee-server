@@ -2,8 +2,43 @@ const jwt = require('jsonwebtoken')
 require("dotenv").config();
 const bcrypt = require('bcryptjs')
 const models = require('../model/user.model')
-const {createUserAuth, createLogoutAt, updateUserAuth, updateToken, updateIsOnline} = require("./user_auth.controller");
+const {createUserAuth, createLogoutAt, updateToken} = require("./user_auth.controller");
 const {validationResult} = require('express-validator')
+
+const mailjet = require("node-mailjet").connect(process.env.MJ_APIKEY_PUBLIC, process.env.MJ_APIKEY_PRIVATE)
+
+
+const sendMail = (email) => {
+    const request = mailjet
+        .post("send", {'version': 'v3.1'})
+        .request({
+            "Messages":[
+                {
+                    "From": {
+                        "Email": "ilja200303@gmail.com",
+                        "Name": "Ilja"
+                    },
+                    "To": [
+                        {
+                            "Email": email,
+                            "Name": "Customer"
+                        }
+                    ],
+                    "Subject": "Greetings from Mailjet.",
+                    "TextPart": "My first Mailjet email",
+                    "HTMLPart": "<h3>Dear passenger 1, welcome to <a href='https://www.mailjet.com/'>Mailjet</a>!</h3><br />May the delivery force be with you!",
+                    "CustomID": "AppGettingStartedTest"
+                }
+            ]
+        })
+    request
+        .then((result) => {
+            console.log(result.body)
+        })
+        .catch((err) => {
+            console.log(err.statusCode)
+        })
+}
 
 const signup = async (req, res) =>{
     try{
@@ -28,7 +63,7 @@ const signup = async (req, res) =>{
             password: encryptedPassword,
         });
 
-        await createUserAuth(null, null, null, null, null)
+        sendMail(email)
 
         res.status(200).send({
             message: "success"
@@ -55,8 +90,11 @@ const signin = async (req, res) =>{
                     expiresIn: "15m"
                 }
             );
+
+            // updated_at - date.now() > 14 min
             res.cookie("access_token", accessToken, {httpOnly: true, maxAge: 15 * 60 * 1000, overwrite: true, sameSite: "none", secure: true})
-            await updateUserAuth(user.id, Date.now(), req.socket.remoteAddress, req.get('User-Agent'), accessToken, true)
+
+            await createUserAuth(user.id, Date.now(), req.socket.remoteAddress, req.get('User-Agent'), accessToken, true)
 
             const {password, ...data} = await user.toJSON()
 
@@ -89,8 +127,6 @@ const token = async (req, res) =>{
         res.status(200).json(user);
 
     }catch (error){
-        const user = jwt.verify(accessToken, process.env.ACCESS_TOKEN, {ignoreExpiration: true} );
-        await updateIsOnline(user.id, false)
         return res.status(400).send(error.message)
     }
 
