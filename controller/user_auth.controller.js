@@ -2,16 +2,33 @@ const models = require("../model/user_auth.model")
 
 
 const createUserAuth = async (user_id,login_at, ip, agent, token, isOnline) =>{
-    await models.create(
-        {
-            user_id,
-            login_at,
-            ip,
-            agent,
-            token,
-            isOnline
+    await models.findOne({where: {user_id: user_id}}).then((user) => {
+        if(!user){
+            models.create(
+                {
+                    user_id,
+                    login_at,
+                    ip,
+                    agent,
+                    token,
+                    isOnline
+                }
+            )
         }
-    )
+        else{
+            models.update(
+                {
+                    login_at,
+                    ip,
+                    agent,
+                    token,
+                    isOnline
+                },{where: {user_id: user.user_id}}
+            )
+        }
+    })
+
+
 }
 
 // const updateUserAuth = async(user_id, login_at, ip, agent, token, isOnline) => {
