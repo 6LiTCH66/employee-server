@@ -1,13 +1,14 @@
 const models = require("../model/user_auth.model")
 
 
-const createUserAuth = async (user_id,login_at, ip, agent, token, isOnline) =>{
+const createUserAuth = async (user_id,login_at, logout_at, ip, agent, token, isOnline) =>{
     await models.findOne({where: {user_id: user_id}}).then((user) => {
         if(!user){
             models.create(
                 {
                     user_id,
                     login_at,
+                    logout_at,
                     ip,
                     agent,
                     token,
@@ -19,6 +20,7 @@ const createUserAuth = async (user_id,login_at, ip, agent, token, isOnline) =>{
             models.update(
                 {
                     login_at,
+                    logout_at,
                     ip,
                     agent,
                     token,
@@ -66,19 +68,26 @@ const updateToken = async (user_id, token, isOnline) => {
     )
 }
 
-// const updateIsOnline = async (user_id, isOnline) => {
-//     await models.update(
-//         {
-//             isOnline
-//         },
-//         {where: {user_id: user_id},}
-//     )
-// }
+const updateIsOnline = async (user_id, logout_at,isOnline) => {
+    await models.update(
+        {
+            logout_at,
+            isOnline
+        },
+        {where: {user_id: user_id},}
+    )
+}
 
 
 const getAuthUsers = async (req, res) => {
     try{
         const authUsers = await models.findAll();
+        authUsers.map(async function (user) {
+            if (user.logout_at === null && new Date(user.updatedAt).getTime() < new Date().getTime() - 840000) {
+                await updateIsOnline(user.user_id, Date.now(), false)
+            }
+        })
+
         return res.status(201).json(authUsers);
 
     }catch (error){

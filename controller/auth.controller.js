@@ -90,11 +90,9 @@ const signin = async (req, res) =>{
                     expiresIn: "15m"
                 }
             );
-
-            // updated_at - date.now() > 14 min
             res.cookie("access_token", accessToken, {httpOnly: true, maxAge: 15 * 60 * 1000, overwrite: true, sameSite: "none", secure: true})
 
-            await createUserAuth(user.id, Date.now(), req.socket.remoteAddress, req.get('User-Agent'), accessToken, true)
+            await createUserAuth(user.id, Date.now(),null, req.socket.remoteAddress, req.get('User-Agent'), accessToken, true)
 
             const {password, ...data} = await user.toJSON()
 
@@ -134,7 +132,9 @@ const token = async (req, res) =>{
 
 const logout = async (req, res) => {
     try{
+
         await createLogoutAt(req.user.id, Date.now(), req.cookies.access_token, false)
+
         res.clearCookie("access_token", {sameSite: "none", secure: true})
         res.status(200).json('User Logged out')
 
