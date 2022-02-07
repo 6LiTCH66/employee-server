@@ -75,8 +75,41 @@ const signup = async (req, res) =>{
     }
 }
 
-const signin = async (req, res) =>{
+const changePassword = async (req, res) => {
+    try {
+        const {email, password, newPassword} = req.body;
+        const user = await models.findOne({where: {email: email}})
+        // check if the user is exist in the database
+        if (user && (await bcrypt.compare(password, user.password))){
+            encryptedNewPassword = await bcrypt.hash(newPassword, 10);
+            // check if a new password is different from the old one
+            if (!await bcrypt.compare(password, encryptedNewPassword)){
+                // if it does update the password to the new one
+                await models.update(
+                    {
+                        password: encryptedNewPassword
+                    },
+                    {where: {email: email}}
+                )
+                res.status(200).send({
+                    message: "Password was successfully changed"
+                })
 
+            }else{
+                res.status(400).send("The password must be different from the current password")
+            }
+
+        }
+        else{
+            res.status(400).send("Invalid Credentials")
+        }
+
+    }catch (error){
+        return res.status(400).send(error.message)
+    }
+}
+
+const signin = async (req, res) =>{
     try{
         const {email, password} = req.body;
 
@@ -90,6 +123,7 @@ const signin = async (req, res) =>{
                     expiresIn: "15m"
                 }
             );
+            // secure to true
             res.cookie("access_token", accessToken, {httpOnly: true, maxAge: 15 * 60 * 1000, overwrite: true, sameSite: "none", secure: true})
 
             await createUserAuth(user.id, Date.now(),null, req.socket.remoteAddress, req.get('User-Agent'), accessToken, true)
@@ -147,5 +181,6 @@ module.exports = {
     signup,
     signin,
     logout,
-    token
+    token,
+    changePassword
 }
