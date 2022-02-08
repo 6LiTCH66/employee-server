@@ -26,7 +26,7 @@ const sendMail = (email) => {
                     ],
                     "Subject": "Greetings from Mailjet.",
                     "TextPart": "My first Mailjet email",
-                    "HTMLPart": `Press <a href=http://localhost:8080/auth/verify/${email}>here</a> to verify your email`,
+                    "HTMLPart": `Press <a href=https://employee-webserver.herokuapp.com/auth/verify/${email}>here</a> to verify your email`,
                     "CustomID": "AppGettingStartedTest"
                 }
             ]
@@ -50,9 +50,32 @@ const sendMail = (email) => {
 //     return randStr;
 // }
 
+const resendEmail = async (req, res) => {
+    try{
+        const {email} = req.params;
+        const user = await models.findOne({where: {email: email}});
+
+        if(!user.isValid){
+            if(user){
+                sendMail(email)
+                res.status(200).send("An email was resent to your email.")
+            }else{
+                res.status(400).send("Cannot send an email to this email address.")
+            }
+        }
+        else{
+            res.status(400).send("Your email address is already confirmed.")
+        }
+
+    }catch (error){
+        return res.status(400).send(error.message)
+    }
+}
+
 const verifyEmail = async (req, res) =>{
     try{
         const {email} = req.params
+        console.log(email)
         const user = await models.findOne({where: {email: email}});
 
         if(user){
@@ -175,7 +198,7 @@ const signin = async (req, res) =>{
             }
 
         }else {
-            res.status(400).send("Config your email")
+            res.status(400).send("Confirm your email")
         }
 
     }catch (error){
@@ -225,5 +248,6 @@ module.exports = {
     logout,
     token,
     changePassword,
-    verifyEmail
+    verifyEmail,
+    resendEmail
 }

@@ -15,6 +15,7 @@ router.post('/token', auth, controller.token)
 router.post("/change", controller.changePassword)
 
 router.get("/verify/:email", controller.verifyEmail)
+router.post("/resent-email/:email", controller.resendEmail)
 
 
 
