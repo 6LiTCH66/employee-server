@@ -26,7 +26,7 @@ const sendMail = (email) => {
                     ],
                     "Subject": "Greetings from Mailjet.",
                     "TextPart": "My first Mailjet email",
-                    "HTMLPart": "<h3>Dear passenger 1, welcome to <a href='https://www.mailjet.com/'>Mailjet</a>!</h3><br />May the delivery force be with you!",
+                    "HTMLPart": `Press <a href=http://localhost:8080/auth/verify/${email}>here</a> to verify your email`,
                     "CustomID": "AppGettingStartedTest"
                 }
             ]
@@ -38,6 +38,40 @@ const sendMail = (email) => {
         .catch((err) => {
             console.log(err.statusCode)
         })
+}
+
+// const randomString = () => {
+//     const len = 8;
+//     let randStr = '';
+//     for (let i = 0; i < len; i++){
+//         const ch = Math.floor((Math.random() * 10) + 1 )
+//         randStr += ch
+//     }
+//     return randStr;
+// }
+
+const verifyEmail = async (req, res) =>{
+    try{
+        const {email} = req.params
+        const user = await models.findOne({where: {email: email}});
+
+        if(user){
+            await models.update(
+                {
+                    isValid: true
+
+                }, {where: {email: email}})
+
+            res.status(200).send("Email was successfully confirmed")
+
+        }else{
+            res.status(400).send("Invalid email address")
+        }
+
+    }catch (error){
+        return res.status(400).send(error.message)
+    }
+
 }
 
 const signup = async (req, res) =>{
@@ -61,7 +95,10 @@ const signup = async (req, res) =>{
         const user = await models.create({
             email,
             password: encryptedPassword,
+            isValid: false
         });
+
+        // const uniqueString = randomString()
 
         sendMail(email)
 
@@ -115,25 +152,30 @@ const signin = async (req, res) =>{
 
         const user = await models.findOne({where: {email: email}});
 
-        if(user && (await bcrypt.compare(password, user.password))){
-            const accessToken = jwt.sign(
-                {id: user.id, email},
-                process.env.ACCESS_TOKEN,
-                {
-                    expiresIn: "15m"
-                }
-            );
-            // secure to true
-            res.cookie("access_token", accessToken, {httpOnly: true, maxAge: 15 * 60 * 1000, overwrite: true, sameSite: "none", secure: true})
+        if(user.isValid){
+            if(user && (await bcrypt.compare(password, user.password))){
+                const accessToken = jwt.sign(
+                    {id: user.id, email},
+                    process.env.ACCESS_TOKEN,
+                    {
+                        expiresIn: "15m"
+                    }
+                );
+                // secure to true
+                res.cookie("access_token", accessToken, {httpOnly: true, maxAge: 15 * 60 * 1000, overwrite: true, sameSite: "none", secure: false})
 
-            await createUserAuth(user.id, Date.now(),null, req.socket.remoteAddress, req.get('User-Agent'), accessToken, true)
+                await createUserAuth(user.id, Date.now(),null, req.socket.remoteAddress, req.get('User-Agent'), accessToken, true)
 
-            const {password, ...data} = await user.toJSON()
+                const {password, ...data} = await user.toJSON()
 
-            res.status(200).json(data);
-        }
-        else{
-            res.status(400).send("Invalid Credentials")
+                res.status(200).json(data);
+            }
+            else{
+                res.status(400).send("Invalid Credentials")
+            }
+
+        }else {
+            res.status(400).send("Config your email")
         }
 
     }catch (error){
@@ -182,5 +224,6 @@ module.exports = {
     signin,
     logout,
     token,
-    changePassword
+    changePassword,
+    verifyEmail
 }

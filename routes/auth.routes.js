@@ -14,6 +14,8 @@ router.post('/logout', auth, controller.logout)
 router.post('/token', auth, controller.token)
 router.post("/change", controller.changePassword)
 
+router.get("/verify/:email", controller.verifyEmail)
+
 
 
 module.exports = router
