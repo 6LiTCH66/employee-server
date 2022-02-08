@@ -58,7 +58,7 @@ const resendEmail = async (req, res) => {
         if(!user.isValid){
             if(user){
                 sendMail(email)
-                res.status(200).send("An email was resent to your email.")
+                res.status(200).send({message:"An email was resent to your email."})
             }else{
                 res.status(400).send("Cannot send an email to this email address.")
             }
