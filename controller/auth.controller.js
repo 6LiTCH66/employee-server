@@ -185,7 +185,7 @@ const signin = async (req, res) =>{
                     }
                 );
                 // secure to true
-                res.cookie("access_token", accessToken, {httpOnly: true, maxAge: 15 * 60 * 1000, overwrite: true, sameSite: "none", secure: false})
+                res.cookie("access_token", accessToken, {httpOnly: true, maxAge: 15 * 60 * 1000, overwrite: true, sameSite: "none", secure: true})
 
                 await createUserAuth(user.id, Date.now(),null, req.socket.remoteAddress, req.get('User-Agent'), accessToken, true)
 
