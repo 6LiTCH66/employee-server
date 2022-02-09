@@ -175,8 +175,8 @@ const signin = async (req, res) =>{
 
         const user = await models.findOne({where: {email: email}});
 
-        if(user.isValid){
-            if(user && (await bcrypt.compare(password, user.password))){
+        if(user && (await bcrypt.compare(password, user.password))){
+            if(user.isValid){
                 const accessToken = jwt.sign(
                     {id: user.id, email},
                     process.env.ACCESS_TOKEN,
@@ -192,13 +192,13 @@ const signin = async (req, res) =>{
                 const {password, ...data} = await user.toJSON()
 
                 res.status(200).json(data);
-            }
-            else{
-                res.status(400).send("Invalid Credentials")
-            }
 
-        }else {
-            res.status(400).send("Confirm your email")
+            }else{
+                res.status(400).send("Confirm your email")
+            }
+        }
+        else{
+            res.status(400).send("Invalid Credentials")
         }
 
     }catch (error){
