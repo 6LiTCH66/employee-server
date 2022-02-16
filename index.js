@@ -3,6 +3,7 @@ const cors = require('cors')
 const cookieParser = require("cookie-parser")
 const employeeRouters = require("./routes/employee.routers")
 const authRouters = require("./routes/auth.routes")
+const vastusedRouters = require("./routes/web_scraping.routes")
 const auth = require("./middlewares/auth")
 const PORT = process.env.PORT || 8080
 const app = express()
@@ -14,5 +15,6 @@ app.use(express.json())
 
 app.use('/api',auth, employeeRouters)
 app.use('/auth', authRouters)
+app.use('/scraping',vastusedRouters)
 
 app.listen(PORT, ()=> console.log(`Server started on port ${PORT}`))
