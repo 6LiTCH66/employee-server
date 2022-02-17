@@ -9,7 +9,16 @@ const createVastused = async (req, res) => {
         return res.status(500).json({error: error})
     }
 }
+const getVastused = async (req, res) => {
+    try{
+        const vastused = await models.findAll()
+        return res.status(201).json(vastused)
+    }catch (error){
+        return res.status(500).json({error:error.message})
+    }
+}
 module.exports = {
-    createVastused
+    createVastused,
+    getVastused
 }
 
