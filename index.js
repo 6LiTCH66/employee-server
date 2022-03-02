@@ -1,4 +1,5 @@
 const express = require("express")
+const socket = require("socket.io")
 const cors = require('cors')
 const cookieParser = require("cookie-parser")
 const employeeRouters = require("./routes/employee.routers")
@@ -17,4 +18,30 @@ app.use('/api',auth, employeeRouters)
 app.use('/auth', authRouters)
 app.use('/scraping',vastusedRouters)
 
-app.listen(PORT, ()=> console.log(`Server started on port ${PORT}`))
+const server = app.listen(PORT, ()=> console.log(`Server started on port ${PORT}`))
+
+const io = socket(server, {
+    cors: {
+        origin: "http://employee-client-app.herokuapp.com/",
+        methods: ["GET", "POST"],
+        credentials: true,
+        transports: ['websocket', 'polling'],
+    },
+    allowEIO3: true
+})
+
+io.on("connection", function (socket){
+    console.log("Made socket connection");
+
+    socket.on("start-client", function (data){
+        io.emit("start-event", data)
+    })
+
+    socket.on("stop-client", function (data){
+        io.emit("stop-event", data)
+    })
+
+    socket.emit("test event", "here is some data");
+
+})
+
