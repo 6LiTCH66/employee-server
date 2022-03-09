@@ -6,4 +6,5 @@ const router = new Router()
 
 router.post('/vastused', controller.createVastused)
 router.get("/vastused", controller.getVastused)
+router.put("/vastused/:vastusedId", controller.updateVastused)
 module.exports = router
